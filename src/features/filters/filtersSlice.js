@@ -24,7 +24,7 @@ function filtersReducer(state = initialState, action){
                     ...state,
                     colors:[...state.colors, action.payload.color]
                 }
-            }else if(action.payload.changeType == 'remove'){
+            }else if(action.payload.changeType === 'remove'){
                 return {
                     ...state,
                     colors: state.colors.filter((color) => color !== action.payload.color)
