@@ -85,13 +85,17 @@ function createStore(reducer, preloadedState, enhancers){
     return {getState, subscribe, dispatch}
 }
 
-function compose(enhancer1, enhancer2){
+
+function compose(...enhancers){
+    
     return function (createStore){
         return (reducer,preloadedState) => {
-            return enhancer1(createStore)(reducer,preloadedState,enhancer2)
+            const lastEhancer = enhancers.reduceRight((acc, enhancer) => (createStore) => (reducer, preloadedState) => enhancer(createStore)(reducer,preloadedState,acc))
+            return lastEhancer(createStore)(reducer, preloadedState)
         }
     }
 }
+
 
 function sayHiOnDispatch2(createStore) {
     return function (reducer, preloadedState, enhancers){
@@ -103,6 +107,18 @@ function sayHiOnDispatch2(createStore) {
             return result
         }
         return {...store, dispatch: newDispatch}
+    }
+}
+
+function sayGoodByeInSubscribe(createStore) {
+    return function (reducer, preloadedState, enhancers){
+        const store = createStore(reducer, preloadedState,enhancers)
+        
+        function newSubscribe(listener){
+            store.subscribe(listener)
+            console.log('goodBye!')
+        }
+        return {...store, subscribe: newSubscribe}
     }
 }
 
@@ -121,7 +137,7 @@ function formatStateReturn(createStore){
     }
 }
 
-const composeEnhancers = compose(sayHiOnDispatch2,formatStateReturn)
+const composeEnhancers = compose(sayHiOnDispatch2,formatStateReturn,sayGoodByeInSubscribe)
 
 const store = createStore(filtersReducer, undefined, composeEnhancers)
 store.subscribe(() => console.log(store.getState()))
