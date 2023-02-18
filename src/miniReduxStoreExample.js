@@ -1,4 +1,6 @@
 // preloadedState -> opcional -> Estado carregado fora do store que é passado como estado inicial da aplicação
+
+
 // ex: Estados vindo do localStorage
 function filtersReducer(state, action){
     switch(action.type){
@@ -33,7 +35,7 @@ function filtersReducer(state, action){
 }
 
 
-function createStore(reducer, preloadedState){
+function createStore(reducer, preloadedState, enhancers){
     // createStore possui o estado dentro dele começando com o preloadedState
     let state = preloadedState
     
@@ -76,10 +78,52 @@ function createStore(reducer, preloadedState){
 
     // dispara um evento com um type aleatório para inicializar o estado da aplicação caso nenhum estado seja fornecido
     dispatch({type:'@@redux/INIT'})
-    return { dispatch, subscribe, getState }
+
+    if(enhancers){
+        return enhancers(createStore)(reducer,preloadedState)
+    }
+    return {getState, subscribe, dispatch}
 }
 
-const store = createStore(filtersReducer)
+function compose(enhancer1, enhancer2){
+    return function (createStore){
+        return (reducer,preloadedState) => {
+            return enhancer1(createStore)(reducer,preloadedState,enhancer2)
+        }
+    }
+}
+
+function sayHiOnDispatch2(createStore) {
+    return function (reducer, preloadedState, enhancers){
+        const store = createStore(reducer, preloadedState,enhancers)
+        
+        function newDispatch(action){
+            const result = store.dispatch(action)
+            console.log('HI!')
+            return result
+        }
+        return {...store, dispatch: newDispatch}
+    }
+}
+
+function formatStateReturn(createStore){
+    return (reducer, preloadedState, enhancers) => {
+        const store = createStore(reducer,preloadedState, enhancers)
+        function getStateFormatted(){
+            return {
+                ...store.getState(),
+                filters:{
+                    status:`status -> ${store.getState().filters.status}`
+                }
+            }
+        }
+        return {...store, getState:getStateFormatted }
+    }
+}
+
+const composeEnhancers = compose(sayHiOnDispatch2,formatStateReturn)
+
+const store = createStore(filtersReducer, undefined, composeEnhancers)
 store.subscribe(() => console.log(store.getState()))
 store.dispatch({type: 'filters/statusFilterChanged', payload: {
     status: 'All'

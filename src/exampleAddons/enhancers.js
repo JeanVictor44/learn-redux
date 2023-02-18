@@ -1,14 +1,14 @@
-export const sayHiOnDispatch = (createStore) => {
-  return (rootReducer, preloadedState, enhancers) => {
+export function sayHiOnDispatch(createStore){
+  return function(rootReducer, preloadedState, enhancers){
     const store = createStore(rootReducer, preloadedState, enhancers)
-
-    function newDispatch(action) {
+    function newDispatch(action){
       const result = store.dispatch(action)
-      console.log('Hi!')
+      console.log('hi')
+
       return result
     }
 
-    return { ...store, dispatch: newDispatch }
+    return {...store, dispatch: newDispatch}
   }
 }
 
