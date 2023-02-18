@@ -1,6 +1,6 @@
-import todosReducer from "./features/todos/todosSlice"
-import filtersReducer from "./features/filters/filtersSlice"
-import { combineReducers } from "redux"
+import { combineReducers } from "redux";
+import filtersReducer from "./features/filters/filtersSlice";
+import todosReducer from "./features/todos/todosSlice";
 
 const rootReducer = combineReducers({
     todos: todosReducer,
